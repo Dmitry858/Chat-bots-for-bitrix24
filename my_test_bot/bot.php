@@ -25,7 +25,7 @@ if ($_REQUEST['event'] == 'ONIMBOTMESSAGEADD')
 	{
 		$result = restCommand('imbot.message.add', Array(
 			"DIALOG_ID" => $_REQUEST['data']['PARAMS']['DIALOG_ID'],
-			"MESSAGE" => 'Меня зовут Тестовый Бот! Пока я умею только искать просроченные задачи, но скоро смогу находить и другую важную информацию',
+			"MESSAGE" => 'Меня зовут Тестовый Бот! Я умею искать просроченные задачи и задачи с высоким приоритетом, крайний срок у которых истекает сегодня. А если меня научить ещё чему-нибудь, я буду более интересным и полезным собеседником.',
 		), $_REQUEST["auth"]);
 	}
 	else if ($message == '2')
@@ -38,11 +38,22 @@ if ($_REQUEST['event'] == 'ONIMBOTMESSAGEADD')
 			"ATTACH" => $arResult['attach'] ? $arResult['attach'] : '',
 		), $_REQUEST["auth"]);
 	}
+	else if ($message == '3')
+	{
+		$arResult = getHighPriorityTasks($_REQUEST['data']['PARAMS']['FROM_USER_ID']);
+
+		$result = restCommand('imbot.message.add', Array(
+			"DIALOG_ID" => $_REQUEST['data']['PARAMS']['DIALOG_ID'],
+			"MESSAGE" => $arResult['title'] . "\n" . $arResult['report'] . "\n",
+			"ATTACH" => $arResult['attach'] ? $arResult['attach'] : '',
+		), $_REQUEST["auth"]);
+	}
 	else
 	{
 		$message = 'Пожалуйста, выберите один из вариантов:[br]'.
 				   '[send=1]1. Расскажи о своих возможностях[/send][br]'.
-				   '[send=2]2. Покажи просроченные задачи[/send]';
+				   '[send=2]2. Покажи просроченные задачи[/send][br]'.
+				   '[send=3]3. Покажи важные задачи с крайним сроком сегодня[/send]';
 		
 		$result = restCommand('imbot.message.add', Array(
 			"DIALOG_ID" => $_REQUEST['data']['PARAMS']['DIALOG_ID'],
@@ -60,7 +71,8 @@ else if ($_REQUEST['event'] == 'ONIMBOTJOINCHAT')
 
 	$message = 'Здравствуйте! Что Вас интересует?[br]'.
 			   '[send=1]1. Расскажи о своих возможностях[/send][br]'.
-			   '[send=2]2. Покажи просроченные задачи[/send]';
+			   '[send=2]2. Покажи просроченные задачи[/send][br]'.
+			   '[send=3]3. Покажи важные задачи с крайним сроком сегодня[/send]'; 
 
 	// send help message how to use chat-bot. For private chat and for group chat need send different instructions.
 	$result = restCommand('imbot.message.add', Array(

@@ -181,3 +181,56 @@ function getBadTasks($userId)
 	}
 	return $arReport;
 }
+
+/**
+ * Get tasks with high priority.
+ *
+ * @param $userId
+ * @return array
+ */
+function getHighPriorityTasks($userId)
+{
+	$tasks = restCommand('tasks.task.list', array(
+	   'order' => array('ID' => 'desc'),
+	   'filter' => array(
+			'RESPONSIBLE_ID' => $userId,
+			'PRIORITY' => '2',
+			'>DEADLINE' => date('Y-m-d 00:00:00'),
+			'<=DEADLINE' => date('Y-m-d 23:59:59')
+		),
+	   'select' => array('ID', 'TITLE', 'RESPONSIBLE_ID', 'PRIORITY', 'DEADLINE')
+	), $_REQUEST["auth"]);
+
+	if (isset($tasks['result']['tasks']) && count($tasks['result']['tasks']) > 0) 
+	{
+		$arTasks = array();
+		foreach ($tasks['result']['tasks'] as $id => $arTask) 
+		{
+			$arTasks[] = array(
+				'LINK' => array(
+					'NAME' => $arTask['title'],
+					'LINK' => 'https://'.$_REQUEST['auth']['domain'].'/company/personal/user/'.$arTask['responsibleId'].'/tasks/task/view/'.$arTask['id'].'/'
+				)
+			);
+			$arTasks[] = array(
+				'DELIMITER' => array(
+					'SIZE' => 400,
+					'COLOR' => '#c6c6c6'
+				)
+			);
+		}
+		$arReport = array(
+			'title' => 'Это всё, что удалось найти:',
+			'report'  => '',
+			'attach' => $arTasks
+		);
+	}
+	else 
+	{
+		$arReport = array(
+			'title' => 'Ничего не нашёл!',
+			'report'  => 'Таких задач нет, можете расслабиться)',
+		);
+	}
+	return $arReport;
+}
